@@ -1,3 +1,4 @@
+
 import {asyncHandler} from "../utils/asyncHandler.js";
 import { APIerror } from "../utils/APIerror.js";
 import {User} from "../models/user.model.js";
@@ -16,31 +17,41 @@ const registerUser =  asyncHandler(async (req, res) => {
     // check if user created successfully
     // return res 
 
-
-   const {fullName , email , username, password} =  req.body
     
 
-   //  console.log("req.body:",req.body);  
+   const {username, fullName , email ,  password} =  req.body
+    
+
+    //  console.log("req.body:",req.body);  
     // console.log("email:",email);
 
-    if( [fullName , email , username, password].some((field) => field?.trim() === "")){
+    if( [username, fullName , email ,  password].some((field) => field?.trim() === "")){
         throw new APIerror(400, "All fields are required");
     }
 
-    const existingUser = User.findOne({
+    const existingUser = await User.findOne({
         $or: [{email},{username}]
     })
     if(existingUser){
         throw new APIerror(409, "User already exists with this email/username");
     }
-    // console.log("req.files:",req.files);
+      console.log("req.files:",req.files);
+
+
    
     const avatarLocalPath =  req.files?.avatar[0]?.path;
-    const coverImageLocalPath =  req.files?.coverImage[0]?.path;
+    // const coverImageLocalPath =  req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
 
     if(!avatarLocalPath) throw new APIerror(400, "Avatar is required");
 
     const avatar = await uploadtoCloudinary(avatarLocalPath);
+    // console.log("avatar uploaded");
+    
     const coverImage = await uploadtoCloudinary(coverImageLocalPath);
 
     if(!avatar) throw new APIerror(500, "Could not upload avatar");
@@ -55,7 +66,7 @@ const registerUser =  asyncHandler(async (req, res) => {
 
     }) 
 
-   const createdUser =  await User.findbyId(user._id).select(
+   const createdUser =  await User.findById(user._id).select(
     "-password -refreshToken"
    )
 
