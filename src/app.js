@@ -20,7 +20,7 @@ import userRouter from "./routes/user.routes.js"
 app.use("/api/v1/users", userRouter)
 
 app.get("/", (req, res) => {
-  res.send("Server is working ✅");
+  res.send("Server is working ");
 });
 
 export {app}
